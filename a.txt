@@ -1,0 +1,108 @@
+# def add_user():
+    """Mở dialog để thêm người dùng mới."""
+    add_dialog = customtkinter.CTkToplevel(root)
+    add_dialog.title("Thêm Người Dùng")
+    # center_dialog(add_dialog)
+    add_dialog.geometry("400x450")
+    add_dialog.resizable(False, False)
+    # add_dialog.grab_set()
+
+    next_id = get_next_user_id()
+    customtkinter.CTkLabel(add_dialog, text=f"ID Người Dùng Mới: {next_id}").place(relx=0.1, rely=0.05)
+
+    # Nhập tên người dùng
+    customtkinter.CTkLabel(add_dialog, text="Tên:").place(relx=0.1, rely=0.12)
+    name_entry = customtkinter.CTkEntry(add_dialog, width=310)
+    name_entry.place(relx=0.1, rely=0.17)
+
+    # Chọn vai trò
+    customtkinter.CTkLabel(add_dialog, text="Vai trò:").place(relx=0.1, rely=0.27)
+    role_var = tk.StringVar(value="user")
+    role_combobox = ttk.Combobox(add_dialog, textvariable=role_var, values=["admin", "user"])
+    role_combobox.place(relx=0.1, rely=0.32)
+
+    # Các trường nhập liệu cho admin
+    username_label = customtkinter.CTkLabel(add_dialog, text="Tên Đăng Nhập:")
+    password_label = customtkinter.CTkLabel(add_dialog, text="Mật Khẩu:")
+    email_label = customtkinter.CTkLabel(add_dialog, text="Email:")
+    
+    username_entry = customtkinter.CTkEntry(add_dialog, width=310)
+    password_entry = customtkinter.CTkEntry(add_dialog, width=310, show='*')
+    email_entry = customtkinter.CTkEntry(add_dialog, width=310)
+
+    # Label và Entry cho Ghi Chú
+    note_label = customtkinter.CTkLabel(add_dialog, text="Ghi Chú:")
+    note_entry = customtkinter.CTkEntry(add_dialog, width=310)
+
+    def update_fields(event):
+        if role_var.get() == "admin":
+            add_dialog.geometry("400x650")
+            # center_dialog(add_dialog)
+            add_dialog.resizable(False, False)
+            username_label.place(relx=0.1, rely=0.4)
+            username_entry.place(relx=0.1, rely=0.45)
+            password_label.place(relx=0.1, rely=0.5)
+            password_entry.place(relx=0.1, rely=0.55)
+            email_label.place(relx=0.1, rely=0.6)
+            email_entry.place(relx=0.1, rely=0.65)
+            note_label.place(relx=0.1, rely=0.7)
+            note_entry.place(relx=0.1, rely=0.75)
+        else:
+            # Ẩn các trường cho admin
+            add_dialog.geometry("400x450")
+            # center_dialog(add_dialog)
+            add_dialog.resizable(False, False)
+            username_label.place_forget()
+            username_entry.place_forget()
+            password_label.place_forget()
+            password_entry.place_forget()
+            email_label.place_forget()
+            email_entry.place_forget()
+            # Đặt lại vị trí ghi chú
+            note_label.place(relx=0.1, rely=0.45)
+            note_entry.place(relx=0.1, rely=0.5)
+
+    role_combobox.bind("<<ComboboxSelected>>", update_fields)
+
+    result_label = customtkinter.CTkLabel(add_dialog, text="")
+    result_label.place(relx=0.1, rely=0.85)
+
+    def save_user():
+        name = name_entry.get()
+        role = role_var.get()
+        username = username_entry.get() if role == "admin" else None
+        password = password_entry.get() if role == "admin" else None
+        email = email_entry.get() if role == "admin" else None
+        note = note_entry.get()
+
+        server_name, database_name = load_db_config()
+        if server_name and database_name:
+            try:
+                connection = pyodbc.connect(
+                    'DRIVER={SQL Server};' +
+                    f'Server={server_name};' +
+                    f'Database={database_name};' +
+                    'Trusted_Connection=True'
+                )
+                cursor = connection.cursor()
+                cursor.execute(
+                    "INSERT INTO user_manager (Name, Role, Username, Password, Email, Note) VALUES (?, ?, ?, ?, ?, ?) ",
+                    (name, role, username, password, email, note)
+                )
+                connection.commit()
+                cursor.close()
+                connection.close()
+                result_label.configure(text="Thêm người dùng thành công!")
+                load_user_data()  # Tải lại dữ liệu người dùng
+            except pyodbc.Error as ex:
+                print("Error saving user data:", ex)
+                result_label.configure(text="Lỗi khi thêm người dùng.")
+        else:
+            print("Server name or database name is missing.")
+            result_label.configure(text="Lỗi kết nối cơ sở dữ liệu.")
+
+    save_button = customtkinter.CTkButton(add_dialog, text="Lưu", command=save_user, fg_color="green")
+    save_button.place(relx=0.35, rely=0.9)
+
+    # Cập nhật trạng thái ban đầu cho các trường nhập liệu
+    update_fields(None)  # Gọi ngay để ẩn/hiện các trường
