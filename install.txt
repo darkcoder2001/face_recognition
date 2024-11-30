@@ -1,0 +1,10 @@
+opencv-python
+numpy
+Pillow
+openpyxl
+pyodbc
+bcrypt
+insightface
+scikit-learn
+arrow
+customtkinter

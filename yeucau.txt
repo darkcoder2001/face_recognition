@@ -1,0 +1,10 @@
+1- trong code comment của bản thân
+2- sửa size nút (adminlogin = attention)
+3- nhãn nút
+4- sửa âm thanh thông báo khi điểm danh
+5- mục đích file Excel là doanh nghiệp
+6- sử dụng cam ngoài (ko dùng cam lap)
+7- lúc báo cáo thì nhờ 1 người đi cùng
+8- dataset ~10nguoi trở lên
+
+*BÁO CÁO

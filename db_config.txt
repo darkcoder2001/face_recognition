@@ -1,0 +1,2 @@
+ADMIN
+face_recognition
