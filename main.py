@@ -290,7 +290,6 @@ def load_db_config():  # sourcery skip: use-contextlib-suppress
 #             print("Đã xảy ra lỗi khi điểm danh:", ex)
 #             return  # Dừng lại nếu có lỗi xảy ra
 
-from datetime import datetime
 
 from datetime import datetime
 
@@ -384,9 +383,6 @@ def attention():
                             cursor.execute(sql_insert, (user_id, name, job_position, attention_date, current_time, None, "Muon"))
                             connection.commit()
                             break
-
-
-
 
                 # Lưu thay đổi
                 # connection.commit()
@@ -492,23 +488,46 @@ def save_face_data():
         pickle.dump(face_data, f)
 
 
-def detect_face(frame):
-    global face_recognition_app
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+# def detect_face(frame):
+#     global face_recognition_app
+#     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
-    # Phát hiện khuôn mặt sử dụng Haar Cascade
-    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+#     # Phát hiện khuôn mặt sử dụng Haar Cascade
+#     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+
+#     if len(faces) > 0:
+#         for (x, y, w, h) in faces:
+#             # Vẽ khung vuông quanh khuôn mặt
+#             cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
+        
+#         # Lấy đặc trưng khuôn mặt
+#         face_embedding = face_recognition_app.get(frame)
+#         if len(face_embedding) > 0:
+#             return face_embedding[0].embedding, faces
+#     return None, None
+
+def detect_face(frame):
+
+    # Chuyển hình ảnh từ BGR sang RGB vì InsightFace yêu cầu
+    img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    
+    # Phát hiện khuôn mặt
+    faces = face_recognition_app.get(img_rgb)
 
     if len(faces) > 0:
-        for (x, y, w, h) in faces:
+        for face in faces:
+            # Lấy bounding box
+            box = face.bbox.astype(int)
+            
             # Vẽ khung vuông quanh khuôn mặt
-            cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-        
-        # Lấy đặc trưng khuôn mặt
-        face_embedding = face_recognition_app.get(frame)
-        if len(face_embedding) > 0:
-            return face_embedding[0].embedding, faces
+            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 0, 0), 2)
+            
+            # Trích xuất embedding của khuôn mặt
+            embedding = face.embedding  # Vector đặc trưng khuôn mặt
+            return embedding, faces  # Trả về embedding và thông tin khuôn mặt
+    
     return None, None
+
 
 def start_camera():
     global cap, camera_active
